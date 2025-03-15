@@ -209,11 +209,39 @@ nav button:hover {
 
 .transaction-category {
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.transaction-category i {
+    font-size: 1.2em;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
 }
 
 .transaction-amount {
     font-weight: bold;
-    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.transaction-amount.income {
+    color: var(--success-color);
+}
+
+.transaction-amount.expense {
+    color: var(--danger-color);
+}
+
+.transaction-amount i {
+    font-size: 0.9em;
+    opacity: 0.7;
 }
 
 .delete-btn {

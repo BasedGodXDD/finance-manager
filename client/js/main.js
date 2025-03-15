@@ -2,6 +2,23 @@
 let transactions = [];
 let currentUser = JSON.parse(localStorage.getItem('currentUser'));
 let currentCurrency = currentUser?.settings?.currency || 'RUB';
+
+// Добавляем иконки для категорий
+const categoryIcons = {
+    'Зарплата': 'fa-money-bill-wave',
+    'Продукты': 'fa-shopping-cart',
+    'Транспорт': 'fa-car',
+    'Развлечения': 'fa-film',
+    'Здоровье': 'fa-hospital',
+    'Коммунальные платежи': 'fa-home',
+    'Образование': 'fa-graduation-cap',
+    'Одежда': 'fa-tshirt',
+    'Путешествия': 'fa-plane',
+    'Техника': 'fa-laptop',
+    'Хобби': 'fa-palette',
+    'Другое': 'fa-question-circle'
+};
+
 const currencySymbols = {
     'RUB': '₽',
     'USD': '$',
@@ -283,8 +300,12 @@ function initializeCategories() {
     
     // Заполняем select для новых транзакций
     if (categorySelect) {
-        categorySelect.innerHTML = categories
-            .map(category => `<option value="${category}">${category}</option>`)
+        categorySelect.innerHTML = Object.keys(categoryIcons)
+            .map(category => `
+                <option value="${category}">
+                    ${category}
+                </option>
+            `)
             .join('');
     }
     
@@ -292,7 +313,13 @@ function initializeCategories() {
     if (filterCategorySelect) {
         filterCategorySelect.innerHTML = `
             <option value="all">Все категории</option>
-            ${categories.map(category => `<option value="${category}">${category}</option>`).join('')}
+            ${Object.keys(categoryIcons)
+                .map(category => `
+                    <option value="${category}">
+                        ${category}
+                    </option>
+                `)
+                .join('')}
         `;
     }
 }
@@ -392,7 +419,7 @@ function createTransactionElement(transaction) {
     div.innerHTML = `
         <div class="transaction-info">
             <div class="transaction-category">
-                <i class="fas fa-tag"></i>
+                <i class="fas ${categoryIcons[transaction.category] || 'fa-tag'}"></i>
                 ${transaction.category}
             </div>
             <div class="transaction-description">
@@ -403,8 +430,8 @@ function createTransactionElement(transaction) {
                 ${formatDate(transaction.date)}
             </div>
         </div>
-        <div class="transaction-amount">
-            ${formatCurrency(amount)}
+        <div class="transaction-amount ${transaction.type}">
+            ${transaction.type === 'income' ? '+' : '-'} ${formatCurrency(amount)}
             ${transaction.isRecurring ? '<i class="fas fa-sync-alt"></i>' : ''}
         </div>
         <button class="delete-btn" onclick="deleteTransaction(${transaction.id})">
