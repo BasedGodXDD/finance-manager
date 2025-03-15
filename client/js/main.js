@@ -50,6 +50,9 @@ const categories = [
     'Другое'
 ];
 
+// Добавляем глобальные переменные для целей
+let goals = [];
+
 // DOM элементы
 const addTransactionForm = document.getElementById('addTransactionForm');
 const transactionsList = document.getElementById('transactionsList');
@@ -67,6 +70,11 @@ const currencySelect = document.getElementById('currencySelect');
 const themeToggle = document.getElementById('themeToggle');
 const logoutBtn = document.getElementById('logoutBtn');
 const exportDataBtn = document.getElementById('exportData');
+
+// DOM элементы для целей
+const showAddGoalBtn = document.getElementById('showAddGoal');
+const goalModal = document.getElementById('goalModal');
+const goalsList = document.getElementById('goalsList');
 
 // Функции для работы с модальными окнами
 function showModal(modalElement) {
@@ -676,6 +684,9 @@ function initializeApp() {
         const allTransactions = JSON.parse(localStorage.getItem('transactions')) || [];
         transactions = allTransactions.filter(t => t.userId === currentUser.id);
         
+        // Загружаем цели
+        goals = JSON.parse(localStorage.getItem('goals')) || [];
+        
         initializeCategories();
         
         // Устанавливаем текущую дату в поле даты
@@ -695,6 +706,7 @@ function initializeApp() {
         exchangeRatesInterval = setInterval(fetchExchangeRates, 3600000);
         
         updateUI();
+        updateGoalsList();
     }
 }
 
@@ -713,4 +725,189 @@ window.showFullNotes = function(transactionId, notes) {
     `;
     document.body.appendChild(modal);
     modal.style.display = 'block';
+};
+
+// Обработчик кнопки добавления цели
+showAddGoalBtn.addEventListener('click', () => {
+    const goalDeadline = document.getElementById('goalDeadline');
+    const today = new Date();
+    today.setDate(today.getDate() + 1); // Минимальная дата - завтра
+    goalDeadline.min = today.toISOString().split('T')[0];
+    showModal(goalModal);
+});
+
+// Обработчик формы добавления цели
+document.getElementById('goalForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        id: Date.now(),
+        userId: currentUser.id,
+        name: document.getElementById('goalName').value,
+        targetAmount: parseFloat(document.getElementById('goalAmount').value),
+        currentAmount: 0,
+        deadline: document.getElementById('goalDeadline').value,
+        priority: document.getElementById('goalPriority').value,
+        notes: document.getElementById('goalNotes').value.trim(),
+        createdAt: new Date().toISOString(),
+        currency: currentCurrency
+    };
+
+    // Добавляем цель
+    goals.push(formData);
+    localStorage.setItem('goals', JSON.stringify(goals));
+    
+    // Обновляем отображение
+    updateGoalsList();
+    
+    // Очищаем форму и закрываем модальное окно
+    e.target.reset();
+    hideModal(goalModal);
+    
+    showNotification('Цель успешно добавлена');
+});
+
+// Функция обновления списка целей
+function updateGoalsList() {
+    if (!goalsList) return;
+    
+    const userGoals = goals.filter(g => g.userId === currentUser.id);
+    
+    if (userGoals.length === 0) {
+        goalsList.innerHTML = `
+            <div class="no-goals">
+                <i class="fas fa-bullseye"></i>
+                <p>У вас пока нет финансовых целей</p>
+                <p>Добавьте свою первую цель!</p>
+            </div>
+        `;
+        return;
+    }
+
+    goalsList.innerHTML = userGoals
+        .sort((a, b) => {
+            const priorityOrder = { high: 3, medium: 2, low: 1 };
+            return priorityOrder[b.priority] - priorityOrder[a.priority];
+        })
+        .map(goal => {
+            const progress = (goal.currentAmount / goal.targetAmount) * 100;
+            const daysLeft = Math.ceil((new Date(goal.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+            
+            return `
+                <div class="goal-card">
+                    <span class="goal-priority ${goal.priority}">${
+                        goal.priority === 'high' ? 'Высокий' :
+                        goal.priority === 'medium' ? 'Средний' : 'Низкий'
+                    }</span>
+                    <div class="goal-header">
+                        <div class="goal-name">${goal.name}</div>
+                    </div>
+                    <div class="goal-progress">
+                        <div class="goal-progress-bar">
+                            <div class="progress" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="goal-amounts">
+                            <span>Накоплено: ${formatCurrency(goal.currentAmount)}</span>
+                            <span>Цель: ${formatCurrency(goal.targetAmount)}</span>
+                        </div>
+                    </div>
+                    <div class="goal-deadline">
+                        <i class="fas fa-clock"></i>
+                        ${daysLeft > 0 ? 
+                            `Осталось ${daysLeft} ${getDaysWord(daysLeft)}` : 
+                            'Срок достижения истёк'}
+                    </div>
+                    <div class="goal-actions">
+                        <button class="goal-action-btn contribute" onclick="contributeToGoal(${goal.id})">
+                            <i class="fas fa-plus"></i> Внести
+                        </button>
+                        <button class="goal-action-btn delete" onclick="deleteGoal(${goal.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        })
+        .join('');
+}
+
+// Функция для правильного склонения дней
+function getDaysWord(days) {
+    const lastDigit = days % 10;
+    const lastTwoDigits = days % 100;
+    
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return 'дней';
+    if (lastDigit === 1) return 'день';
+    if (lastDigit >= 2 && lastDigit <= 4) return 'дня';
+    return 'дней';
+}
+
+// Функция внесения средств в цель
+window.contributeToGoal = function(goalId) {
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2><i class="fas fa-piggy-bank"></i> Внести средства</h2>
+            <form id="contributeForm">
+                <div class="form-group">
+                    <label>Сумма</label>
+                    <input type="number" id="contributeAmount" required min="0" step="0.01" 
+                           max="${goal.targetAmount - goal.currentAmount}">
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-check"></i> Подтвердить
+                </button>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.style.display = 'block';
+
+    document.getElementById('contributeForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const amount = parseFloat(document.getElementById('contributeAmount').value);
+        
+        goal.currentAmount += amount;
+        localStorage.setItem('goals', JSON.stringify(goals));
+        
+        // Создаем транзакцию для внесенных средств
+        const transaction = {
+            id: Date.now(),
+            userId: currentUser.id,
+            type: 'expense',
+            amount: amount,
+            category: 'Накопления',
+            date: new Date().toISOString().split('T')[0],
+            description: `Внесение средств в цель: ${goal.name}`,
+            currency: currentCurrency
+        };
+        
+        transactions.push(transaction);
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+        
+        updateGoalsList();
+        updateUI();
+        modal.remove();
+        
+        showNotification('Средства успешно внесены');
+        
+        if (goal.currentAmount >= goal.targetAmount) {
+            showNotification('Поздравляем! Цель достигнута!', 'success');
+        }
+    });
+};
+
+// Функция удаления цели
+window.deleteGoal = function(goalId) {
+    if (confirm('Вы уверены, что хотите удалить эту цель?')) {
+        goals = goals.filter(g => g.id !== goalId);
+        localStorage.setItem('goals', JSON.stringify(goals));
+        updateGoalsList();
+        showNotification('Цель удалена');
+    }
 };
