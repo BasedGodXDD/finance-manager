@@ -157,8 +157,65 @@ function formatDateForFilename(date) {
     return `${year}-${month}-${day}`;
 }
 
-// Добавьте обработчик для кнопки экспорта
-exportDataBtn.addEventListener('click', exportTransactionsToCSV);
+// Обработчик кнопки экспорта
+exportDataBtn.addEventListener('click', () => {
+    showModal(document.getElementById('exportModal'));
+});
+
+// Обработчики кнопок форматов экспорта
+document.querySelectorAll('.export-option').forEach(button => {
+    button.addEventListener('click', () => {
+        const format = button.dataset.format;
+        if (format === 'csv') {
+            exportTransactionsToCSV();
+        } else if (format === 'json') {
+            exportTransactionsToJSON();
+        }
+        hideModal(document.getElementById('exportModal'));
+    });
+});
+
+// Функция экспорта в JSON
+function exportTransactionsToJSON() {
+    if (!transactions.length) {
+        showNotification('Нет данных для экспорта', 'error');
+        return;
+    }
+
+    const userTransactions = transactions.filter(t => t.userId === currentUser.id);
+    
+    if (!userTransactions.length) {
+        showNotification('Нет транзакций для экспорта', 'error');
+        return;
+    }
+
+    // Подготовка данных для экспорта
+    const exportData = {
+        user: {
+            id: currentUser.id,
+            name: currentUser.name,
+            email: currentUser.email
+        },
+        transactions: userTransactions,
+        exportDate: new Date().toISOString(),
+        settings: currentUser.settings
+    };
+
+    // Создание и скачивание файла
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `finance_manager_export_${formatDateForFilename(new Date())}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification('Данные успешно экспортированы в JSON');
+}
+
 // Функция для обновления интерфейса пользователя
 function updateUserInterface() {
     const guestControls = document.getElementById('guestControls');

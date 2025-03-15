@@ -193,6 +193,25 @@
             </div>
         </div>
 
+        <!-- Модальное окно выбора формата экспорта -->
+        <div id="exportModal" class="modal">
+            <div class="modal-content">
+                <h2><i class="fas fa-download"></i> Экспорт данных</h2>
+                <div class="export-options">
+                    <button class="export-option" data-format="csv">
+                        <i class="fas fa-file-csv"></i>
+                        <span>CSV формат</span>
+                        <small>Удобен для работы в Excel</small>
+                    </button>
+                    <button class="export-option" data-format="json">
+                        <i class="fas fa-file-code"></i>
+                        <span>JSON формат</span>
+                        <small>Для разработчиков и импорта</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Уведомления -->
         <div id="notifications" class="notifications-section"></div>
     </div>
