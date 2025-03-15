@@ -570,3 +570,57 @@ nav button:hover {
         grid-template-columns: 1fr;
     }
 }
+
+.form-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--background-color);
+    color: var(--text-color);
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.transaction-notes {
+    font-size: 0.9em;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-top: 5px;
+    padding-left: 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.transaction-notes i {
+    color: var(--primary-color);
+    font-size: 0.9em;
+    margin-top: 3px;
+}
+
+.transaction-notes-content {
+    flex: 1;
+    white-space: pre-line;
+}
+
+.transaction-item .show-notes-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.9em;
+    opacity: 0.7;
+    transition: var(--transition);
+}
+
+.transaction-item .show-notes-btn:hover {
+    opacity: 1;
+}

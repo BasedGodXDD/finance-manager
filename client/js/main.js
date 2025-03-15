@@ -416,6 +416,9 @@ function createTransactionElement(transaction) {
         currentCurrency
     );
 
+    const hasNotes = transaction.notes && transaction.notes.length > 0;
+    const notesPreview = hasNotes ? transaction.notes.slice(0, 50) + (transaction.notes.length > 50 ? '...' : '') : '';
+
     div.innerHTML = `
         <div class="transaction-info">
             <div class="transaction-category">
@@ -424,6 +427,17 @@ function createTransactionElement(transaction) {
             </div>
             <div class="transaction-description">
                 ${transaction.description || 'Без описания'}
+                ${hasNotes ? `
+                    <div class="transaction-notes">
+                        <i class="fas fa-sticky-note"></i>
+                        <div class="transaction-notes-content">${notesPreview}</div>
+                        ${transaction.notes.length > 50 ? `
+                            <button class="show-notes-btn" onclick="showFullNotes('${transaction.id}', \`${transaction.notes.replace(/`/g, '\\`')}\`)">
+                                Показать полностью
+                            </button>
+                        ` : ''}
+                    </div>
+                ` : ''}
             </div>
             <div class="transaction-date">
                 <i class="fas fa-calendar"></i>
@@ -565,6 +579,7 @@ document.getElementById('transactionForm').addEventListener('submit', (e) => {
         category: document.getElementById('category').value,
         date: document.getElementById('date').value,
         description: document.getElementById('description').value,
+        notes: document.getElementById('notes').value.trim(),
         isRecurring: document.getElementById('isRecurring').checked,
         recurringPeriod: document.getElementById('recurringPeriod').value,
         currency: currentCurrency
@@ -682,3 +697,20 @@ function initializeApp() {
         updateUI();
     }
 }
+
+// Функция для показа полного текста заметок
+window.showFullNotes = function(transactionId, notes) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2><i class="fas fa-sticky-note"></i> Заметки к транзакции</h2>
+            <div style="margin: 20px 0; white-space: pre-line;">${notes}</div>
+            <button class="submit-btn" onclick="this.closest('.modal').remove()">
+                Закрыть
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.style.display = 'block';
+};
