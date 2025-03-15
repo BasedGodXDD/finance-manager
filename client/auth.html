@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация | Finance Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <i class="fas fa-wallet"></i>
+                <h1>Finance Manager</h1>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">
+                    <i class="fas fa-sign-in-alt"></i> Вход
+                </button>
+                <button class="auth-tab" data-tab="register">
+                    <i class="fas fa-user-plus"></i> Регистрация
+                </button>
+            </div>
+
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" placeholder="Пароль" required>
+                </div>
+                <button type="submit" class="auth-button">
+                    <i class="fas fa-sign-in-alt"></i> Войти
+                </button>
+                <a href="#" class="forgot-password">Забыли пароль?</a>
+            </form>
+
+            <form id="registerForm" class="auth-form hidden">
+                <div class="form-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="name" placeholder="Имя" required>
+                </div>
+                <div class="form-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" name="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" placeholder="Пароль" required>
+                </div>
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="confirmPassword" placeholder="Подтвердите пароль" required>
+                </div>
+                <button type="submit" class="auth-button">
+                    <i class="fas fa-user-plus"></i> Зарегистрироваться
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Добавляем div для уведомлений -->
+    <div id="notifications"></div>
+
+    <!-- Подключаем скрипты -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const authTabs = document.querySelectorAll('.auth-tab');
+
+            // Переключение между формами
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    authTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    if (tab.dataset.tab === 'login') {
+                        loginForm.classList.remove('hidden');
+                        registerForm.classList.add('hidden');
+                    } else {
+                        loginForm.classList.add('hidden');
+                        registerForm.classList.remove('hidden');
+                    }
+                });
+            });
+
+            // Обработка входа
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = loginForm.querySelector('input[name="email"]').value;
+                const password = loginForm.querySelector('input[name="password"]').value;
+
+                // Создаем тестового пользователя
+                const user = {
+                    id: 1,
+                    name: 'Пользователь',
+                    email: email,
+                    settings: {
+                        theme: 'light',
+                        currency: 'RUB'
+                    }
+                };
+
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                window.location.href = '/';
+            });
+
+            // Обработка регистрации
+            registerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = registerForm.querySelector('input[name="name"]').value;
+                const email = registerForm.querySelector('input[name="email"]').value;
+                const password = registerForm.querySelector('input[name="password"]').value;
+                const confirmPassword = registerForm.querySelector('input[name="confirmPassword"]').value;
+
+                if (password !== confirmPassword) {
+                    alert('Пароли не совпадают');
+                    return;
+                }
+
+                const user = {
+                    id: 1,
+                    name: name,
+                    email: email,
+                    settings: {
+                        theme: 'light',
+                        currency: 'RUB'
+                    }
+                };
+
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                window.location.href = '/';
+            });
+        });
+    </script>
+</body>
+</html> 
